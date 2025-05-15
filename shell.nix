@@ -3,10 +3,11 @@ pkgs.mkShell {
     name = "labiryncior";
 
     packages = 
-        ( with pkgs; [
+         with pkgs; [
             libpng
             gdb
             libgcc
-        ]
-        );
+            just
+            pkgconf
+         ];
 }

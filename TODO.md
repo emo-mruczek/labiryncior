@@ -2,6 +2,8 @@
 
 yyyyyyyy what should I do
 
+this is a temporary name ofc (or not if i decided so)
+
 # about
 
 so this shit is supposed to solve mazes
@@ -21,6 +23,7 @@ maybe i will make a TUI later in order to learn shit
     [ ] integrate libpng with the project
     [ ] get libpng to compile with a basic main
     [ ] simple makefile, consider also justfile
+    [ ] formatter
 
 2. Importing the file with a maze
 3. Parsing the file into the internal structure holding the maze
@@ -33,3 +36,10 @@ maybe i will make a TUI later in order to learn shit
 - real-time solving animation
 - controlling the speed of the animation
 - checking wether maze is solvable at all
+
+
+# useful stuff and all
+
+- https://cheatography.com/linux-china/cheat-sheets/justfile/
+- https://libpng.sourceforge.io/
+
