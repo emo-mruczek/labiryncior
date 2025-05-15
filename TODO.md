@@ -24,6 +24,8 @@ maybe i will make a TUI later in order to learn shit
     [ ] get libpng to compile with a basic main
     [ ] simple makefile, consider also justfile
     [ ] formatter
+    [ ] export compile commands??
+    [ ] what c standard am i using
 
 2. Importing the file with a maze
 3. Parsing the file into the internal structure holding the maze
