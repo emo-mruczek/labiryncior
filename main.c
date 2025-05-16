@@ -5,15 +5,14 @@
 #include <png.h>
 
 #define HEADER_SIZE 8
-#define PNG_LIBPNG_VER_STRING "1.6.46"
 
- // TODO: do stuff with it or sth, this is just for the testing purposes
+// TODO: put it all into functions to make code less messy
     
-    uint32_t nr_of_rows = 0;
+uint32_t nr_of_rows = 0;
 
-    void read_row(png_structp png_ptr, png_uint_32 row, int pass) {
+void read_row(png_structp png_ptr, png_uint_32 row, int pass) {
         nr_of_rows++;
-    }
+}
 
 int main(int argc, char** argv) {
 
@@ -43,6 +42,10 @@ int main(int argc, char** argv) {
         fprintf(stdout, "not a png!\n");
         exit(EXIT_FAILURE);
     }
+
+    /* basic info */
+
+    fprintf(stdout, " Compiled with libpng %s. \n", PNG_LIBPNG_VER_STRING /*, ZLIB_VERSION, zlib_version*/ );
 
     /* initializing the necessary structures */
 
@@ -76,19 +79,48 @@ int main(int argc, char** argv) {
     png_set_sig_bytes(png_ptr, HEADER_SIZE);
 
     /* reading, finally! */
-
+    
     png_set_read_status_fn(png_ptr, read_row); 
 
-    /* png_transforms - integer containing the bitwise OR of some set of transformation flags */
+    png_read_info(png_ptr, png_info_ptr);
+    
+    /* getting some info about the file */
 
-    int png_transforms = 0;
+    png_uint_32 height;
+    png_uint_32 width;
+    int bit_depth;
+    int color_type;
 
-    png_read_png(png_ptr, png_info_ptr, png_transforms, NULL);
+    png_get_IHDR(png_ptr, png_info_ptr, &width, &height, &bit_depth, &color_type, NULL, NULL, NULL);
+    fprintf(stdout, " Width: %d Height: %d Bit depth: %d Color type: %d\n", width, height, bit_depth, color_type);
 
-    fprintf(stdout, "nr of rows: %d \n", nr_of_rows);
+    /* reading rows */
 
+    png_bytep row_pointers[height];
 
-    printf("dupa!");
+    for (size_t row = 0; row < height; row++) row_pointers[row] = NULL;
+    for (size_t row = 0; row < height; row++) row_pointers[row] = png_malloc(png_ptr, png_get_rowbytes(png_ptr, png_info_ptr)); 
+
+    png_read_image(png_ptr, row_pointers);
+
+    fprintf(stdout, " nr of rows: %d \n", nr_of_rows);
+
+    png_destroy_read_struct(&png_ptr, &png_info_ptr, NULL);
+
+    for(int y = 0; y < height; y++) {
+        png_bytep row = row_pointers[y];
+        for(int x = 0; x < width; x++) {
+            png_bytep px = &(row[x * 4]);
+            printf("%3d, %3d = RGBA(%3d, %3d, %3d, %3d)\n", x, y, px[0], px[1], px[2], px[3]);
+        }
+    }
+
+    /* clean up */
+
+    png_ptr = NULL;
+    png_info_ptr = NULL;
+
     fclose(fp);
+
     return EXIT_SUCCESS;
 }
