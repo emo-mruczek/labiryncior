@@ -107,13 +107,35 @@ int main(int argc, char** argv) {
 
     png_destroy_read_struct(&png_ptr, &png_info_ptr, NULL);
 
-    for(int y = 0; y < height; y++) {
+    // TODO compress
+    bool is_black = false;
+    for(int y = 0; y < height; y += 2) {
         png_bytep row = row_pointers[y];
-        for(int x = 0; x < width; x++) {
+        for(int x = 0; x < width; x += 2) {
             png_bytep px = &(row[x * 4]);
-            printf("%3d, %3d = RGBA(%3d, %3d, %3d, %3d)\n", x, y, px[0], px[1], px[2], px[3]);
+            // printf(" %3d, %3d = RGBA(%3d, %3d, %3d, %3d)\n", x, y, px[0], px[1], px[2], px[3]);
+            if (px[0] == 0) {
+                is_black = true;
+                fprintf(stdout, "." );
+            } else {
+                if (is_black) {
+                    fprintf(stdout, " ");
+                    is_black = false;
+                } else {
+                    printf("*");
+                }
+            }
         }
+        fprintf(stdout, "\n");
     }
+
+    /* okay so 
+     * look at squares
+     * if side is black - there is a wall and you cannot go there
+     * this squares are nodes 
+     * nodes are structs with pointers to the nodes (one for each way) -> null if no connection
+     * booleans for start/finish value or sth 
+     */
 
     /* clean up */
 
