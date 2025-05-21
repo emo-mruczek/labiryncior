@@ -6,10 +6,27 @@
 
 #define HEADER_SIZE 8
 
-// TODO: put it all into functions to make code less messy
+static png_uint_32 height;
+static png_uint_32 width;
+static int bit_depth;
+static int color_type;
+static png_bytep* row_pointers;
+
+typedef struct Node {
+    struct Node* top;
+    struct Node* right;
+    struct Node* down;
+    struct Node* left;
+    bool is_start;
+    bool is_finish;
+} Node;
+
+void read_png(char const* const filename);
+void process_png();
     
 uint32_t nr_of_rows = 0;
 
+// dummy for tests
 void read_row(png_structp png_ptr, png_uint_32 row, int pass) {
         nr_of_rows++;
 }
@@ -21,7 +38,27 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
 
-    FILE *fp = fopen(argv[1], "r"); // add "b" if windows but WINDOWS SUCKS SO NO!!!
+    read_png(argv[1]);
+    process_png();
+    
+    return EXIT_SUCCESS;
+}
+
+void process_png() {
+
+    for(int y = 0; y < height - 0; y++) {
+        png_bytep row = row_pointers[y];
+        for(int x = 0; x < width - 0; x++) {
+            png_bytep px = &(row[x * 4]);
+            if (px[0] == 0) fprintf(stdout, "**" );
+            else fprintf(stdout, "  ");
+        }
+        fprintf(stdout, "\n");
+    }
+}
+
+void read_png(char const* const filename) {
+    FILE *fp = fopen(filename, "r"); // add "b" if windows but WINDOWS SUCKS SO NO!!!
     
     if (!fp) {
         fprintf(stdout, "couldn't open the file!\n");
@@ -86,17 +123,12 @@ int main(int argc, char** argv) {
     
     /* getting some info about the file */
 
-    png_uint_32 height;
-    png_uint_32 width;
-    int bit_depth;
-    int color_type;
-
     png_get_IHDR(png_ptr, png_info_ptr, &width, &height, &bit_depth, &color_type, NULL, NULL, NULL);
     fprintf(stdout, " Width: %d Height: %d Bit depth: %d Color type: %d\n", width, height, bit_depth, color_type);
 
     /* reading rows */
 
-    png_bytep row_pointers[height];
+    row_pointers = malloc(sizeof(png_bytep) * height);
 
     for (size_t row = 0; row < height; row++) row_pointers[row] = NULL;
     for (size_t row = 0; row < height; row++) row_pointers[row] = png_malloc(png_ptr, png_get_rowbytes(png_ptr, png_info_ptr)); 
@@ -105,44 +137,22 @@ int main(int argc, char** argv) {
 
     fprintf(stdout, " nr of rows: %d \n", nr_of_rows);
 
+    /* clean up */
+
     png_destroy_read_struct(&png_ptr, &png_info_ptr, NULL);
+    png_ptr = NULL;
+    png_info_ptr = NULL;
 
-    // TODO compress
-    bool is_black = false;
-    for(int y = 0; y < height; y += 2) {
-        png_bytep row = row_pointers[y];
-        for(int x = 0; x < width; x += 2) {
-            png_bytep px = &(row[x * 4]);
-            // printf(" %3d, %3d = RGBA(%3d, %3d, %3d, %3d)\n", x, y, px[0], px[1], px[2], px[3]);
-            if (px[0] == 0) {
-                is_black = true;
-                fprintf(stdout, "." );
-            } else {
-                if (is_black) {
-                    fprintf(stdout, " ");
-                    is_black = false;
-                } else {
-                    printf("*");
-                }
-            }
-        }
-        fprintf(stdout, "\n");
-    }
+    fclose(fp);
+}
 
-    /* okay so 
+/* obsolete, as i decided to make it easier for myself::::
+      * okay so 
      * look at squares
      * if side is black - there is a wall and you cannot go there
      * this squares are nodes 
      * nodes are structs with pointers to the nodes (one for each way) -> null if no connection
      * booleans for start/finish value or sth 
-     */
-
-    /* clean up */
-
-    png_ptr = NULL;
-    png_info_ptr = NULL;
-
-    fclose(fp);
-
-    return EXIT_SUCCESS;
-}
+     * nodes 14*14 px MINIMUM
+     * 16*16? after stripping edges???
+  */
