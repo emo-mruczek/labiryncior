@@ -1,3 +1,7 @@
+/* i am aware that this implementation is not efficient
+ * i made it in order to get familiar with libpng 
+ * and learn about maze-solving algorithms */
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,14 +16,25 @@ static int bit_depth;
 static int color_type;
 static png_bytep* row_pointers;
 
-typedef struct Node {
+/* TODO: ok it this struct really necessary? maybe i should just doan array
+ * wait it is necessary
+ * i can do an array of structs
+ * an this way
+ * i can calculate on which positions are neightbours
+ * cuz i know the dimensions of the maze
+ * omg im kinda dumb sometimes ngl */
+
+typedef struct Node Node;
+struct Node {
     struct Node* top;
     struct Node* right;
     struct Node* down;
     struct Node* left;
-    bool is_start;
-    bool is_finish;
-} Node;
+    bool is_start; /* checked only for the edge tiles */
+    bool is_finish; /* the tile is an finishing tile if the start one was already established */
+};
+
+/* remember that for structs, if not all members were initialized explicitly, the rest are initialized to 0 implicitly */
 
 void read_png(char const* const filename);
 void process_png();
@@ -44,16 +59,44 @@ int main(int argc, char** argv) {
     return EXIT_SUCCESS;
 }
 
+Node* make_new_node(Node* left, Node* top) {
+    Node* temp = (Node*)malloc(sizeof(Node));
+
+    temp->left = left;
+    temp->top = top;
+    temp->right = NULL;
+    temp->down = NULL;
+
+    return temp;
+}
+
 void process_png() {
 
-    for(int y = 0; y < height - 0; y++) {
+    uint16_t nr_of_whites = 0;
+    for(int y = 0; y < height; y++) {
         png_bytep row = row_pointers[y];
-        for(int x = 0; x < width - 0; x++) {
+        for(int x = 0; x < width; x++) {
             png_bytep px = &(row[x * 4]);
             if (px[0] == 0) fprintf(stdout, "**" );
-            else fprintf(stdout, "  ");
+            else {
+                fprintf(stdout, "  ");
+                nr_of_whites++;
+            }
         }
         fprintf(stdout, "\n");
+    }
+
+    Node nodes[nr_of_whites];
+
+    /* TODO: process every other? in order to correctly apply nodes? no idea how to handle it rn */
+    for(int y = 1; y < height - 1; y++) {
+        png_bytep row = row_pointers[y];
+        for(int x = 1; x < width - 1; x++) {
+            png_bytep px = &(row[x * 4]);
+            if (px[0] == 255) {
+                // make a new node
+            }
+        }
     }
 }
 
@@ -65,8 +108,8 @@ void read_png(char const* const filename) {
         exit(EXIT_FAILURE);
     }
 
-    uint8_t header[HEADER_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0}; // i mean 
-
+    uint8_t header[HEADER_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0}; // TODO: memset(arr, 0, sizeof arr);
+    //
     if (fread(header, sizeof(header[0]), HEADER_SIZE, fp) != HEADER_SIZE) {
         fprintf(stdout, "error reading header bytes\n");
         exit(EXIT_FAILURE);
