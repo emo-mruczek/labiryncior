@@ -2,6 +2,8 @@
  * i made it in order to get familiar with libpng
  * and learn about maze-solving algorithms */
 
+// TODO: solving it real time?
+
 #include <png.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -10,39 +12,20 @@
 
 #define HEADER_SIZE 8
 
-typedef struct Node Node;
+typedef struct pixel {
+  int x;
+  int y;
+} pixel;
+
 static png_uint_32 height;
 static png_uint_32 width;
 static int bit_depth;
 static int color_type;
 static png_bytep *row_pointers;
-static Node *nodes; // TODO: // TODO: malloc
-
-// TODO: firstly, count number of nodes in order to malloc them
-
-/* TODO: ok it this struct really necessary? maybe i should just doan array
- * wait it is necessary
- * i can do an array of structs
- * an this way
- * i can calculate on which positions are neightbours
- * cuz i know the dimensions of the maze
- * omg im kinda dumb sometimes ngl */
-
-struct Node {
-  struct Node *top;
-  struct Node *right;
-  struct Node *down;
-  struct Node *left;
-  bool is_start;  /* checked only for the edge tiles */
-  bool is_finish; /* the tile is an finishing tile if the start one was already
-                     established */
-};
-
-/* remember that for structs, if not all members were initialized explicitly,
- * the rest are initialized to 0 implicitly */
 
 void read_png(char const *const filename);
 void process_png();
+bool solve(pixel *start, pixel *end);
 
 int main(int argc, char **argv) {
 
@@ -57,48 +40,64 @@ int main(int argc, char **argv) {
   return EXIT_SUCCESS;
 }
 
-Node *make_new_node(Node *left, Node *top) {
-  Node *temp = (Node *)malloc(sizeof(Node));
-
-  temp->left = left;
-  temp->top = top;
-  temp->right = NULL;
-  temp->down = NULL;
-
-  return temp;
-}
+// https://www.wikiwand.com/en/articles/Maze-solving_algorithm
 
 void process_png() {
+  // TODO: memset
+  bool maze[width][height]; // wall if true
+  bool visited[width][height];
+  bool solution[width][height];
+  // TODO: find them
+  pixel start;
+  pixel end;
 
-  /* just for visualisation */
-  uint16_t nr_of_whites = 0;
+  /* printing is just for visualisation */
   for (int y = 0; y < height; y++) {
     png_bytep row = row_pointers[y];
     for (int x = 0; x < width; x++) {
       png_bytep px = &(row[x * 4]);
-      if (px[0] == 0)
+      if (px[0] == 0) {
         fprintf(stdout, "**");
-      else {
+        maze[x][y] = true;
+      } else {
         fprintf(stdout, "  ");
-        nr_of_whites++;
+        maze[x][y] = false;
       }
     }
     fprintf(stdout, "\n");
   }
 
-  Node nodes[nr_of_whites];
+  /* finding start and end
+   * disc: must be at first and last columns */
+  // TODO: make it search also in a first and last row in order to make a code more universal
 
-  /* TODO take the  width of the maze, this is the offset */
-
-  for (int y = 1; y < height - 1; y++) {
+  for (int y = 0; y < height; y++) {
     png_bytep row = row_pointers[y];
-    for (int x = 1; x < width - 1; x++) {
-      png_bytep px = &(row[x * 4]);
-      if (px[0] == 255) {
-        // make a new node
-      }
+    png_bytep px = &(row[0]);
+    if (px[0] == 0) {
+      fprintf(stdout, "wall\n");
+    } else {
+      fprintf(stdout, "enter %d\n", y);
+      start.x = 0;
+      start.y = y;
+      break;
     }
   }
+
+  for (int y = 0; y < height; y++) {
+    png_bytep row = row_pointers[y];
+    png_bytep px = &(row[(width - 1) * 4]);
+    if (px[0] == 0) {
+      fprintf(stdout, "wall\n");
+    } else {
+      fprintf(stdout, "exit %d\n", y);
+      start.x = 0;
+      start.y = y;
+      break;
+    }
+  }
+
+  // bool is_solution = solve(&start, &end);
 }
 
 /* png stuff */
