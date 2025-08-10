@@ -12,20 +12,22 @@
 
 #define HEADER_SIZE 8
 
-typedef struct pixel {
-  int x;
-  int y;
-} pixel;
-
 static png_uint_32 height;
 static png_uint_32 width;
 static int bit_depth;
 static int color_type;
 static png_bytep *row_pointers;
+static bool **maze;
+static bool **visited;
+static bool **solution;
+static int start_x;
+static int start_y;
+static int end_x;
+static int end_y;
 
 void read_png(char const *const filename);
 void process_png();
-bool solve(pixel *start, pixel *end);
+bool solve(int x, int y);
 
 int main(int argc, char **argv) {
 
@@ -43,13 +45,25 @@ int main(int argc, char **argv) {
 // https://www.wikiwand.com/en/articles/Maze-solving_algorithm
 
 void process_png() {
-  // TODO: memset
-  bool maze[width][height]; // wall if true
-  bool visited[width][height];
-  bool solution[width][height];
-  // TODO: find them
-  pixel start;
-  pixel end;
+
+  // assersts
+  // TODO:
+  // https://stackoverflow.com/questions/42094465/correctly-allocating-multi-dimensional-arrays
+
+  maze = calloc(height, sizeof(bool *));
+  for (int i = 0; i < height; ++i) {
+    maze[i] = calloc(width, sizeof(bool));
+  }
+
+  visited = calloc(height, sizeof(bool *));
+  for (int i = 0; i < height; ++i) {
+    visited[i] = calloc(width, sizeof(bool));
+  }
+
+  solution = calloc(height, sizeof(bool *));
+  for (int i = 0; i < height; ++i) {
+    solution[i] = calloc(width, sizeof(bool));
+  }
 
   /* printing is just for visualisation */
   for (int y = 0; y < height; y++) {
@@ -69,7 +83,8 @@ void process_png() {
 
   /* finding start and end
    * disc: must be at first and last columns */
-  // TODO: make it search also in a first and last row in order to make a code more universal
+  // TODO: make it search also in a first and last row in order to make a code
+  // more universal
 
   for (int y = 0; y < height; y++) {
     png_bytep row = row_pointers[y];
@@ -78,8 +93,8 @@ void process_png() {
       fprintf(stdout, "wall\n");
     } else {
       fprintf(stdout, "enter %d\n", y);
-      start.x = 0;
-      start.y = y;
+      start_x = 0;
+      start_y = y;
       break;
     }
   }
@@ -91,13 +106,49 @@ void process_png() {
       fprintf(stdout, "wall\n");
     } else {
       fprintf(stdout, "exit %d\n", y);
-      start.x = 0;
-      start.y = y;
+      end_x = width - 1;
+      end_y = y;
       break;
     }
   }
 
-  // bool is_solution = solve(&start, &end);
+  bool is_solution = solve(start_x, start_y);
+
+
+
+  // TODO: free
+}
+
+bool solve(int x, int y) {
+
+  if (x == end_x && y == end_y)
+    return true;
+
+  if (maze[x][y] || visited[x][y])
+    return false;
+
+  visited[x][y] = true;
+
+  if (x != 0)
+    if (solve(x - 1, y)) {
+      solution[x][y] = true; 
+    }
+  if (x != width - 1)               
+    if (solve(x + 1, y)) { 
+      solution[x][y] = true;
+      return true;
+    }
+  if (y != 0)                       
+    if (solve(x, y - 1)) { 
+      solution[x][y] = true;
+      return true;
+    }
+  if (y != height - 1)              
+    if (solve(x, y + 1)) { 
+      solution[x][y] = true;
+      return true;
+    }
+  return false;
 }
 
 /* png stuff */
