@@ -85,6 +85,8 @@ void process_png() {
    * disc: must be at first and last columns */
   // TODO: make it search also in a first and last row in order to make a code
   // more universal
+  
+  fprintf(stdout, "\n looking for enter...\n");
 
   for (int y = 0; y < height; y++) {
     png_bytep row = row_pointers[y];
@@ -99,6 +101,8 @@ void process_png() {
     }
   }
 
+  fprintf(stdout, "\n looking for exit...\n");
+
   for (int y = 0; y < height; y++) {
     png_bytep row = row_pointers[y];
     png_bytep px = &(row[(width - 1) * 4]);
@@ -112,9 +116,12 @@ void process_png() {
     }
   }
 
+  fprintf(stdout, "\n enter: %d %d\n exit: %d %d\n", start_x, start_y, end_x, end_y);
+
+  // TODO: fix
   bool is_solution = solve(start_x, start_y);
 
-
+  fprintf(stdout, "\n%d\n", is_solution);
 
   // TODO: free
 }
@@ -248,12 +255,3 @@ void read_png(char const *const filename) {
   fclose(fp);
 }
 
-/* obsolete, as i decided to make it easier for myself::::
- * okay so
- * look at squares
- * if side is black - there is a wall and you cannot go there
- * this squares are nodes
- * nodes are structs with pointers to the nodes (one for each way) -> null if no
- * connection booleans for start/finish value or sth nodes 14*14 px MINIMUM
- * 16*16? after stripping edges???
- */
