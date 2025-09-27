@@ -121,6 +121,20 @@ void process_png() {
   // TODO: fix
   bool is_solution = solve(start_x, start_y);
 
+  fprintf(stdout, " solution\n\n");
+
+   for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      if (solution[x][y] == 0) {
+        fprintf(stdout, "**");
+      } else {
+        fprintf(stdout, "  ");
+      }
+    }
+    fprintf(stdout, "\n");
+  }
+
+
   fprintf(stdout, "\n%d\n", is_solution);
 
   // TODO: free
@@ -128,33 +142,37 @@ void process_png() {
 
 bool solve(int x, int y) {
 
-  if (x == end_x && y == end_y)
+  if (x == end_x && y == end_y) {
+    solution[x][y] = true;
     return true;
+  }
 
-  if (maze[x][y] || visited[x][y])
+  if (x < 0 || x >= width || y < 0 || y >= height || maze[x][y] || visited[x][y])
     return false;
 
   visited[x][y] = true;
 
-  if (x != 0)
     if (solve(x - 1, y)) {
       solution[x][y] = true; 
+      return true;
     }
-  if (x != width - 1)               
+
     if (solve(x + 1, y)) { 
       solution[x][y] = true;
       return true;
     }
-  if (y != 0)                       
+
     if (solve(x, y - 1)) { 
       solution[x][y] = true;
       return true;
     }
-  if (y != height - 1)              
+
     if (solve(x, y + 1)) { 
       solution[x][y] = true;
       return true;
     }
+
+  visited[x][y] = false;
   return false;
 }
 
